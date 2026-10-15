@@ -136,9 +136,9 @@ document.querySelectorAll('.sizebtn').forEach(btn=>btn.addEventListener('click',
 }));
 function addRow(data={}){rows.push({description:data.description||'',qty:data.qty??1,area:data.area??'',item:data.item??'',duration:data.duration||'',rate:data.rate??'',discount:data.discount??'',unit:data.unit??''});renderEditor();update()}
 function renderEditor(){ $('rows').innerHTML=rows.map((r,i)=>`<div class="rowbox"><div><label>Description</label><input data-i="${i}" data-k="description" value="${esc(r.description)}"></div><div><label>Qty</label><input type="number" min="0" step="any" data-i="${i}" data-k="qty" value="${r.qty}"></div><div><label>Surface / m²</label><input type="number" min="0" step="any" data-i="${i}" data-k="area" value="${r.area}" placeholder="0.00"></div><div><label>Item</label><input type="number" min="0" step="any" data-i="${i}" data-k="item" value="${r.item}" placeholder="0"></div><div><label>Duration</label><input data-i="${i}" data-k="duration" value="${esc(r.duration)}"></div><div><label>Rate</label><input type="text" data-i="${i}" data-k="rate" value="${esc(r.rate)}" placeholder="e.g. Hourly, Daily, Monthly"></div><div><label>Discount %</label><input type="number" data-i="${i}" data-k="discount" value="${r.discount}" placeholder="0.00"></div><div><label>Unit Price</label><input type="number" data-i="${i}" data-k="unit" value="${r.unit}" placeholder="0.00"></div><button class="danger" data-del="${i}">✕</button></div>`).join('');}
-function update(){const dueSelection=$('dueTerm').value;let days=Number(dueSelection)||0;const yy=String(now.getFullYear()).slice(-2);$('quoteYearSuffix').textContent='-'+yy;$('pQuoteNo').textContent='INV-'+($('quoteNo').value||'')+'-'+yy;$('quotationYearSuffix').textContent='-'+yy;
+function update(){const dueSelection=$('dueTerm').value;let days=Number(dueSelection)||0;const yy=String(now.getFullYear()).slice(-2);$('quoteYearSuffix').textContent='-'+yy;$('pQuoteNo').textContent='INV-'+($('quoteNo').value ? String(Number($('quoteNo').value)).padStart(3,'0') : '')+'-'+yy;$('quotationYearSuffix').textContent='-'+yy;
 const manualQuotationNo=$('quotationNo').value.trim();
-$('pQuotationNo').textContent=manualQuotationNo ? 'QDS-'+manualQuotationNo+'-'+yy : '—';$('pDate').textContent=dateFmt(now);$('customDueDate').style.display=dueSelection==='custom'?'block':'none';const chosenDate=$('customDueDate').value;const customDate=chosenDate?new Date(chosenDate+'T12:00:00'):null;$('pValid').textContent=dueSelection==='custom'?(customDate&&!Number.isNaN(customDate.getTime())?dateFmt(customDate):'Select a date'):(days?`Payment Within ${days} Days`:'Payment Immediate');$('pClient').textContent=$('clientName').value||'Client / Company Name';$('pClientCR').textContent='CR: '+($('clientCR').value||'—');$('pClientLocation').textContent=$('clientLocation').value||'—';$('pClientPhone').textContent=$('clientPhone').value||'—';$('pClientEmail').textContent=$('clientEmail').value||'—';$('clientCRLine').style.display=$('showClientCR').checked?'grid':'none';$('clientLocationLine').style.display=$('showClientLocation').checked?'grid':'none';$('clientPhoneLine').style.display=$('showClientPhone').checked?'grid':'none';$('clientEmailLine').style.display=$('showClientEmail').checked?'grid':'none';let active=['num','description',...cols.filter(([k])=>document.querySelector(`[data-col="${k}"]`).checked).map(x=>x[0])];let names={num:'#',description:'Description',...Object.fromEntries(cols)};$('thead').innerHTML=active.map(k=>`<th>${names[k]}</th>`).join('');let subtotal=0;$('tbody').innerHTML=rows.map((r,i)=>{let qty=+r.qty||0,item=+r.item||0,area=+r.area||0,rateText=String(r.rate??''),rate=Number(rateText)||0,disc=+r.discount||0,unit=+r.unit||rate;
+$('pQuotationNo').textContent=manualQuotationNo ? 'QDS-'+manualQuotationNo.padStart(3,'0')+'-'+yy : '—';$('pDate').textContent=dateFmt(now);$('customDueDate').style.display=dueSelection==='custom'?'block':'none';const chosenDate=$('customDueDate').value;const customDate=chosenDate?new Date(chosenDate+'T12:00:00'):null;$('pValid').textContent=dueSelection==='custom'?(customDate&&!Number.isNaN(customDate.getTime())?dateFmt(customDate):'Select a date'):(days?`Payment Within ${days} Days`:'Payment Immediate');$('pClient').textContent=$('clientName').value||'Client / Company Name';$('pClientCR').textContent='CR: '+($('clientCR').value||'—');$('pClientLocation').textContent=$('clientLocation').value||'—';$('pClientPhone').textContent=$('clientPhone').value||'—';$('pClientEmail').textContent=$('clientEmail').value||'—';$('clientCRLine').style.display=$('showClientCR').checked?'grid':'none';$('clientLocationLine').style.display=$('showClientLocation').checked?'grid':'none';$('clientPhoneLine').style.display=$('showClientPhone').checked?'grid':'none';$('clientEmailLine').style.display=$('showClientEmail').checked?'grid':'none';let active=['num','description',...cols.filter(([k])=>document.querySelector(`[data-col="${k}"]`).checked).map(x=>x[0])];let names={num:'#',description:'Description',...Object.fromEntries(cols)};$('thead').innerHTML=active.map(k=>`<th>${names[k]}</th>`).join('');let subtotal=0;$('tbody').innerHTML=rows.map((r,i)=>{let qty=+r.qty||0,item=+r.item||0,area=+r.area||0,rateText=String(r.rate??''),rate=Number(rateText)||0,disc=+r.discount||0,unit=+r.unit||rate;
 let basis=area>0?area:(item>0?item:qty);
 let amount=basis*unit*(1-disc/100);
 subtotal+=amount;
@@ -151,7 +151,7 @@ document.addEventListener('input',e=>{if(e.target.dataset.i!==undefined){let i=+
   const used=Number($('quoteNo').value);
   const oldTitle=document.title;
   const yy=String(now.getFullYear()).slice(-2);
-  const ref='INV-'+used+'-'+yy;
+  const ref='INV-'+String(used).padStart(3,'0')+'-'+yy;
   const client=($('clientName').value||'Client').trim().replace(/[\/:*?"<>|]+/g,'-').replace(/\s+/g,' ');
   document.title=ref+'-'+client;
   window.print();
@@ -161,10 +161,10 @@ document.addEventListener('input',e=>{if(e.target.dataset.i!==undefined){let i=+
 
     // Show the next reference immediately; no manual refresh required.
     const immediateNext=used+1;
-    $('quoteNo').value=String(immediateNext);
+    $('quoteNo').value=String(immediateNext).padStart(3,'0');
     sharedQuoteLoaded=true;
     clearInvoiceForNext();
-    $('quoteNo').value=String(immediateNext);
+    $('quoteNo').value=String(immediateNext).padStart(3,'0');
     update();
 
     // Quietly synchronize with the central Apps Script counter.
@@ -203,6 +203,7 @@ $('editQuoteRef').addEventListener('click',()=>{
   }
 });
 $('quoteNo').addEventListener('input',()=>update());
+$('quoteNo').addEventListener('blur',()=>{if(manualQuoteReference && /^\d+$/.test($('quoteNo').value)){$('quoteNo').value=String(Number($('quoteNo').value)).padStart(3,'0');update();}});
 $('quotationNo').addEventListener('input',()=>{
   $('quotationNo').value=$('quotationNo').value.replace(/\D/g,'');
   update();
@@ -222,8 +223,8 @@ function loadSharedInvoiceReference(){
     };
     const timer=setTimeout(()=>finish(false),12000);
     window[cb]=(data)=>{
-      if(data&&data.ok&&Number.isFinite(Number(data.next))&&Number(data.next)>=1001){
-        if(!manualQuoteReference) $('quoteNo').value=String(Number(data.next));
+      if(data&&data.ok&&Number.isFinite(Number(data.next))&&Number(data.next)>=1){
+        if(!manualQuoteReference) $('quoteNo').value=String(Number(data.next)).padStart(3,'0');
         sharedQuoteLoaded=true;
         update();
         finish(true);
@@ -357,7 +358,7 @@ async function uploadCurrentInvoiceToDrive(){
     }
     const usedQuoteNo=Number($('quoteNo').value);
     const yy=String(now.getFullYear()).slice(-2);
-    const ref='INV-'+($('quoteNo').value||'')+'-'+yy;
+    const ref='INV-'+($('quoteNo').value ? String(Number($('quoteNo').value)).padStart(3,'0') : '')+'-'+yy;
     const client=safeFilePart($('clientName').value);
     const filename=ref+'-'+client+'.pdf';
     const pdfBlob=await buildInvoicePdfBlob();
